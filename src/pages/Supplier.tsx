@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Eye, Edit, Trash2, Phone, Mail, MapPin, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabaseClient";
 
 const Supplier = () => {
   const { toast } = useToast();
@@ -37,54 +38,19 @@ const Supplier = () => {
     status: "active",
   });
 
-  // Mock data
-  const suppliers = [
-    {
-      id: "SUP001",
-      supplierName: "ABC Supply Co.",
-      contactPerson: "John Smith",
-      phone: "+1-555-0123",
-      email: "john@abcsupply.com",
-      address: "123 Business Ave, City, State 12345",
-      status: "active",
-      createdDate: "2024-01-01"
-    },
-    {
-      id: "SUP002", 
-      supplierName: "Global Trading Ltd.",
-      contactPerson: "Sarah Johnson",
-      phone: "+1-555-0456",
-      email: "sarah@globaltrading.com",
-      address: "456 Commerce St, City, State 67890",
-      status: "active",
-      createdDate: "2024-01-05"
-    },
-    {
-      id: "SUP003",
-      supplierName: "Premier Wholesale", 
-      contactPerson: "Mike Wilson",
-      phone: "+1-555-0789",
-      email: "mike@premierwholesale.com",
-      address: "789 Trade Blvd, City, State 54321",
-      status: "inactive",
-      createdDate: "2024-01-10"
-    },
-    {
-      id: "SUP004",
-      supplierName: "Quality Parts Inc.",
-      contactPerson: "Lisa Brown",
-      phone: "+1-555-0321",
-      email: "lisa@qualityparts.com", 
-      address: "321 Industrial Way, City, State 98765",
-      status: "active",
-      createdDate: "2024-01-12"
-    }
-  ];
+  const [suppliers, setSuppliers] = useState([]);
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      const { data, error } = await supabase.from('suppliers').select('*');
+      if (!error) setSuppliers(data || []);
+    };
+    fetchSuppliers();
+  }, []);
 
   const filteredSuppliers = suppliers.filter(supplier =>
-    supplier.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.id.toLowerCase().includes(searchTerm.toLowerCase())
+    (supplier.supplierName || supplier.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (supplier.contactPerson || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (supplier.id || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -156,7 +122,7 @@ const Supplier = () => {
           <CardContent>
             <div className="flex items-center">
               <Users className="w-8 h-8 text-primary mr-3" />
-              <div className="text-2xl font-bold text-foreground">{suppliers.length}</div>
+              <div className="text-2xl font-bold text-foreground">0</div>
             </div>
           </CardContent>
         </Card>
@@ -169,7 +135,7 @@ const Supplier = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">
-              {suppliers.filter(s => s.status === "active").length}
+              0
             </div>
           </CardContent>
         </Card>
@@ -182,7 +148,7 @@ const Supplier = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {suppliers.filter(s => s.status === "inactive").length}
+              0
             </div>
           </CardContent>
         </Card>
@@ -194,7 +160,7 @@ const Supplier = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">2</div>
+            <div className="text-2xl font-bold text-foreground">0</div>
             <p className="text-sm text-muted-foreground">New suppliers</p>
           </CardContent>
         </Card>
@@ -319,22 +285,18 @@ const Supplier = () => {
                 {filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell className="font-medium">{supplier.id}</TableCell>
-                    <TableCell className="font-semibold">{supplier.supplierName}</TableCell>
+                    <TableCell className="font-semibold">{supplier.supplierName || supplier.name}</TableCell>
                     <TableCell>{supplier.contactPerson}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        {supplier.phone && (
-                          <div className="flex items-center text-sm">
-                            <Phone className="w-3 h-3 mr-1 text-muted-foreground" />
-                            {supplier.phone}
-                          </div>
-                        )}
-                        {supplier.email && (
-                          <div className="flex items-center text-sm">
-                            <Mail className="w-3 h-3 mr-1 text-muted-foreground" />
-                            {supplier.email}
-                          </div>
-                        )}
+                        <div className="flex items-center text-sm">
+                          <Phone className="w-3 h-3 mr-1 text-muted-foreground" />
+                          {supplier.phone}
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <Mail className="w-3 h-3 mr-1 text-muted-foreground" />
+                          {supplier.email}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>

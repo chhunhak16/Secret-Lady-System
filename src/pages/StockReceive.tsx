@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Eye, Edit, Trash2, Calendar, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabaseClient";
 
 const StockReceive = () => {
   const { toast } = useToast();
@@ -36,56 +37,19 @@ const StockReceive = () => {
     note: "",
   });
 
-  // Mock data
-  const suppliers = [
-    { id: "SUP001", name: "ABC Supply Co." },
-    { id: "SUP002", name: "Global Trading Ltd." },
-    { id: "SUP003", name: "Premier Wholesale" },
-  ];
-
-  const products = [
-    { id: "PRD001", name: "Product A" },
-    { id: "PRD002", name: "Product B" },
-    { id: "PRD003", name: "Product C" },
-  ];
-
-  const receives = [
-    {
-      id: "SR001",
-      supplierName: "ABC Supply Co.",
-      productName: "Product A",
-      qty: 100,
-      receivingDate: "2024-01-15",
-      status: "received",
-      note: "Good condition",
-      createdDate: "2024-01-15"
-    },
-    {
-      id: "SR002", 
-      supplierName: "Global Trading Ltd.",
-      productName: "Product B",
-      qty: 75,
-      receivingDate: "2024-01-20",
-      status: "pending",
-      note: "Expected delivery",
-      createdDate: "2024-01-18"
-    },
-    {
-      id: "SR003",
-      supplierName: "Premier Wholesale", 
-      productName: "Product C",
-      qty: 50,
-      receivingDate: "2024-01-22",
-      status: "partial",
-      note: "Partial delivery received",
-      createdDate: "2024-01-20"
-    },
-  ];
+  const [receives, setReceives] = useState([]);
+  useEffect(() => {
+    const fetchReceives = async () => {
+      const { data, error } = await supabase.from('stock_receive').select('*');
+      if (!error) setReceives(data || []);
+    };
+    fetchReceives();
+  }, []);
 
   const filteredReceives = receives.filter(receive =>
-    receive.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    receive.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    receive.id.toLowerCase().includes(searchTerm.toLowerCase())
+    (receive.supplierName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (receive.productName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (receive.id || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -152,7 +116,7 @@ const StockReceive = () => {
           <CardContent>
             <div className="flex items-center">
               <Package className="w-8 h-8 text-primary mr-3" />
-              <div className="text-2xl font-bold text-foreground">{receives.length}</div>
+              <div className="text-2xl font-bold text-foreground">0</div>
             </div>
           </CardContent>
         </Card>
@@ -165,7 +129,7 @@ const StockReceive = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">
-              {receives.filter(r => r.status === "received").length}
+              0
             </div>
           </CardContent>
         </Card>
@@ -178,7 +142,7 @@ const StockReceive = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-warning">
-              {receives.filter(r => r.status === "pending").length}
+              0
             </div>
           </CardContent>
         </Card>
@@ -191,7 +155,7 @@ const StockReceive = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {receives.reduce((sum, r) => sum + r.qty, 0)}
+              0
             </div>
           </CardContent>
         </Card>
@@ -215,11 +179,11 @@ const StockReceive = () => {
                     <SelectValue placeholder="Select supplier" />
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers.map((supplier) => (
-                      <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </SelectItem>
-                    ))}
+                    {/* REMOVED: suppliers.map((supplier) => ( */}
+                    <SelectItem key="placeholder" value="" disabled>
+                      Select a supplier
+                    </SelectItem>
+                    {/* REMOVED: suppliers.map((supplier) => ( */}
                   </SelectContent>
                 </Select>
               </div>
@@ -234,11 +198,11 @@ const StockReceive = () => {
                     <SelectValue placeholder="Select product" />
                   </SelectTrigger>
                   <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name}
-                      </SelectItem>
-                    ))}
+                    {/* REMOVED: products.map((product) => ( */}
+                    <SelectItem key="placeholder" value="" disabled>
+                      Select a product
+                    </SelectItem>
+                    {/* REMOVED: products.map((product) => ( */}
                   </SelectContent>
                 </Select>
               </div>
@@ -319,37 +283,37 @@ const StockReceive = () => {
               </TableHeader>
               <TableBody>
                 {filteredReceives.map((receive) => (
-                  <TableRow key={receive.id}>
-                    <TableCell className="font-medium">{receive.id}</TableCell>
-                    <TableCell>{receive.supplierName}</TableCell>
-                    <TableCell>{receive.productName}</TableCell>
-                    <TableCell>{receive.qty}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-                        {new Date(receive.receivingDate).toLocaleDateString()}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(receive.status)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground max-w-xs truncate">
-                      {receive.note}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                <TableRow key={receive.id}>
+                  <TableCell className="font-medium">{receive.id}</TableCell>
+                  <TableCell>{receive.supplierName}</TableCell>
+                  <TableCell>{receive.productName}</TableCell>
+                  <TableCell>{receive.qty}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+                      {receive.receivingDate}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(receive.status)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground max-w-xs truncate">
+                    {receive.note}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
                 ))}
               </TableBody>
             </Table>

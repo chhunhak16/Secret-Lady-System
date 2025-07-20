@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Eye, Edit, Trash2, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabaseClient";
 
 const StockTransfer = () => {
   const { toast } = useToast();
@@ -34,53 +35,19 @@ const StockTransfer = () => {
     receiveDate: "",
   });
 
-  // Mock data
-  const receivers = [
-    { id: "REC001", name: "Downtown Store" },
-    { id: "REC002", name: "Mall Branch" },
-    { id: "REC003", name: "Airport Outlet" },
-  ];
-
-  const products = [
-    { id: "PRD001", name: "Product A", availableQty: 150 },
-    { id: "PRD002", name: "Product B", availableQty: 75 },
-    { id: "PRD003", name: "Product C", availableQty: 200 },
-  ];
-
-  const transfers = [
-    {
-      id: "ST001",
-      receiverName: "Downtown Store",
-      productName: "Product A",
-      qty: 50,
-      receiveDate: "2024-01-15",
-      status: "completed",
-      createdDate: "2024-01-10"
-    },
-    {
-      id: "ST002", 
-      receiverName: "Mall Branch",
-      productName: "Product B",
-      qty: 25,
-      receiveDate: "2024-01-20",
-      status: "pending",
-      createdDate: "2024-01-12"
-    },
-    {
-      id: "ST003",
-      receiverName: "Airport Outlet", 
-      productName: "Product C",
-      qty: 75,
-      receiveDate: "2024-01-18",
-      status: "completed",
-      createdDate: "2024-01-14"
-    },
-  ];
+  const [transfers, setTransfers] = useState([]);
+  useEffect(() => {
+    const fetchTransfers = async () => {
+      const { data, error } = await supabase.from('stock_transfer').select('*');
+      if (!error) setTransfers(data || []);
+    };
+    fetchTransfers();
+  }, []);
 
   const filteredTransfers = transfers.filter(transfer =>
-    transfer.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transfer.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transfer.id.toLowerCase().includes(searchTerm.toLowerCase())
+    (transfer.receiverName || transfer.to_location || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (transfer.productName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (transfer.id || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -145,7 +112,7 @@ const StockTransfer = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{transfers.length}</div>
+            <div className="text-2xl font-bold text-foreground">0</div>
           </CardContent>
         </Card>
 
@@ -156,9 +123,7 @@ const StockTransfer = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">
-              {transfers.filter(t => t.status === "completed").length}
-            </div>
+            <div className="text-2xl font-bold text-success">0</div>
           </CardContent>
         </Card>
 
@@ -169,9 +134,7 @@ const StockTransfer = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-warning">
-              {transfers.filter(t => t.status === "pending").length}
-            </div>
+            <div className="text-2xl font-bold text-warning">0</div>
           </CardContent>
         </Card>
 
@@ -182,9 +145,7 @@ const StockTransfer = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {transfers.reduce((sum, t) => sum + t.qty, 0)}
-            </div>
+            <div className="text-2xl font-bold text-foreground">0</div>
           </CardContent>
         </Card>
       </div>
@@ -207,11 +168,10 @@ const StockTransfer = () => {
                     <SelectValue placeholder="Select receiver" />
                   </SelectTrigger>
                   <SelectContent>
-                    {receivers.map((receiver) => (
-                      <SelectItem key={receiver.id} value={receiver.id}>
-                        {receiver.name}
-                      </SelectItem>
-                    ))}
+                    {/* REMOVED: receivers.map((receiver) => ( */}
+                    <SelectItem key="REC001" value="REC001">Downtown Store</SelectItem>
+                    <SelectItem key="REC002" value="REC002">Mall Branch</SelectItem>
+                    <SelectItem key="REC003" value="REC003">Airport Outlet</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -226,11 +186,10 @@ const StockTransfer = () => {
                     <SelectValue placeholder="Select product" />
                   </SelectTrigger>
                   <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} (Available: {product.availableQty})
-                      </SelectItem>
-                    ))}
+                    {/* REMOVED: products.map((product) => ( */}
+                    <SelectItem key="PRD001" value="PRD001">Product A (Available: 150)</SelectItem>
+                    <SelectItem key="PRD002" value="PRD002">Product B (Available: 75)</SelectItem>
+                    <SelectItem key="PRD003" value="PRD003">Product C (Available: 200)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -303,20 +262,20 @@ const StockTransfer = () => {
                 {filteredTransfers.map((transfer) => (
                   <TableRow key={transfer.id}>
                     <TableCell className="font-medium">{transfer.id}</TableCell>
-                    <TableCell>{transfer.receiverName}</TableCell>
+                    <TableCell>{transfer.receiverName || transfer.to_location}</TableCell>
                     <TableCell>{transfer.productName}</TableCell>
                     <TableCell>{transfer.qty}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-                        {new Date(transfer.receiveDate).toLocaleDateString()}
+                        {new Date(transfer.expected_receive_date).toLocaleDateString()}
                       </div>
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(transfer.status)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(transfer.createdDate).toLocaleDateString()}
+                      {new Date(transfer.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">

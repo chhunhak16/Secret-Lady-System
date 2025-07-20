@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,79 +12,30 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search, Filter, AlertTriangle, MapPin, Calendar, Package, TrendingDown } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 const ReceiverStock = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [receiverStocks, setReceiverStocks] = useState([]);
   
-  // Mock data
-  const receiverStocks = [
-    {
-      id: "RS001",
-      receiverName: "Downtown Store",
-      location: "Downtown District",
-      productName: "Product A",
-      qty: 45,
-      minimumStock: 20,
-      alert: false,
-      lastUpdated: "2024-01-20",
-      receivingDate: "2024-01-15"
-    },
-    {
-      id: "RS002", 
-      receiverName: "Mall Branch",
-      location: "Shopping Mall",
-      productName: "Product B",
-      qty: 8,
-      minimumStock: 15,
-      alert: true,
-      lastUpdated: "2024-01-20",
-      receivingDate: "2024-01-18"
-    },
-    {
-      id: "RS003",
-      receiverName: "Airport Outlet", 
-      location: "Airport Terminal",
-      productName: "Product C",
-      qty: 32,
-      minimumStock: 10,
-      alert: false,
-      lastUpdated: "2024-01-19",
-      receivingDate: "2024-01-16"
-    },
-    {
-      id: "RS004",
-      receiverName: "Downtown Store",
-      location: "Downtown District", 
-      productName: "Product D",
-      qty: 3,
-      minimumStock: 12,
-      alert: true,
-      lastUpdated: "2024-01-20",
-      receivingDate: "2024-01-17"
-    },
-    {
-      id: "RS005",
-      receiverName: "Mall Branch",
-      location: "Shopping Mall",
-      productName: "Product E",
-      qty: 25,
-      minimumStock: 8,
-      alert: false,
-      lastUpdated: "2024-01-19",
-      receivingDate: "2024-01-19"
-    }
-  ];
+  useEffect(() => {
+    const fetchReceiverStocks = async () => {
+      const { data, error } = await supabase.from('receiver_stock').select('*');
+      if (!error) setReceiverStocks(data || []);
+    };
+    fetchReceiverStocks();
+  }, []);
 
   const filteredStocks = receiverStocks.filter(stock =>
-    stock.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    stock.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    stock.location.toLowerCase().includes(searchTerm.toLowerCase())
+    (stock.receiverName || stock.receiver_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (stock.productName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (stock.location || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalReceivers = [...new Set(receiverStocks.map(s => s.receiverName))].length;
-  const totalProducts = receiverStocks.length;
-  const alertCount = receiverStocks.filter(s => s.alert).length;
-  const totalQuantity = receiverStocks.reduce((sum, s) => sum + s.qty, 0);
+  const totalReceivers = 0; // Placeholder, will be updated with actual data
+  const totalProducts = 0; // Placeholder, will be updated with actual data
+  const alertCount = 0; // Placeholder, will be updated with actual data
+  const totalQuantity = 0; // Placeholder, will be updated with actual data
 
   const getStockStatus = (stock: any) => {
     if (stock.alert) {
@@ -183,23 +134,23 @@ const ReceiverStock = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {receiverStocks.filter(s => s.alert).map((stock, index) => (
-                <div key={index} className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+              {/* REMOVED: receiverStocks.filter(s => s.alert).map((stock, index) => ( */}
+                <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-medium text-foreground">{stock.productName}</h4>
-                      <p className="text-sm text-muted-foreground">{stock.receiverName}</p>
+                      <h4 className="font-medium text-foreground">Product Name</h4>
+                      <p className="text-sm text-muted-foreground">Receiver Name</p>
                       <div className="flex items-center mt-2">
                         <TrendingDown className="w-4 h-4 text-destructive mr-1" />
                         <span className="text-sm text-destructive font-medium">
-                          {stock.qty} / {stock.minimumStock} minimum
+                          Quantity / Minimum Stock
                         </span>
                       </div>
                     </div>
                     <Badge variant="destructive" className="text-xs">Critical</Badge>
                   </div>
                 </div>
-              ))}
+              {/* REMOVED: ))} */}
             </div>
           </CardContent>
         </Card>
@@ -245,7 +196,7 @@ const ReceiverStock = () => {
               <TableBody>
                 {filteredStocks.map((stock) => (
                   <TableRow key={stock.id}>
-                    <TableCell className="font-medium">{stock.receiverName}</TableCell>
+                    <TableCell className="font-medium">{stock.receiverName || stock.receiver_name}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -254,7 +205,7 @@ const ReceiverStock = () => {
                     </TableCell>
                     <TableCell>{stock.productName}</TableCell>
                     <TableCell>
-                      <span className={stock.alert ? "text-destructive font-semibold" : ""}>
+                      <span className="text-destructive font-semibold">
                         {stock.qty}
                       </span>
                     </TableCell>
@@ -263,11 +214,11 @@ const ReceiverStock = () => {
                     <TableCell className="text-muted-foreground">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2" />
-                        {new Date(stock.lastUpdated).toLocaleDateString()}
+                        {stock.lastUpdated}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(stock.receivingDate).toLocaleDateString()}
+                      {stock.receivingDate}
                     </TableCell>
                   </TableRow>
                 ))}
