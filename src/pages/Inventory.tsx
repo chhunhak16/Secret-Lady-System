@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,23 +15,66 @@ import { Plus, Search, Filter, AlertTriangle, Edit, Trash2 } from "lucide-react"
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const products = [
-    { id: 1, name: "Product A", qty: 150, minStock: 20, alert: false, note: "Regular stock" },
-    { id: 2, name: "Product B", qty: 8, minStock: 15, alert: true, note: "Urgent reorder needed" },
-    { id: 3, name: "Product C", qty: 75, minStock: 10, alert: false, note: "Good stock level" },
-    { id: 4, name: "Product D", qty: 5, minStock: 25, alert: true, note: "Critical low stock" },
-    { id: 5, name: "Product E", qty: 200, minStock: 30, alert: false, note: "Overstocked" },
-    { id: 6, name: "Product F", qty: 12, minStock: 20, alert: true, note: "Below minimum" },
-  ];
 
+  // Add product form state
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    qty: "",
+    minStock: "",
+    note: "",
+  });
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Products state
+  const [products, setProducts] = useState([]);
+
+  // Fetch products from backend API
+  useEffect(() => {
+    fetch('http://localhost:4000/products')
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(err => setError("Failed to fetch products: " + err.message));
+  }, []);
+
+  // Filtered products
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalProducts = products.length;
-  const totalQty = products.reduce((sum, product) => sum + product.qty, 0);
-  const alertProducts = products.filter(product => product.alert).length;
+  // Add product handler using backend API
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    const { name, qty, minStock, note } = newProduct;
+    if (!name || !qty || !minStock) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:4000/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, qty: Number(qty), minStock: Number(minStock), note })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setNewProduct({ name: "", qty: "", minStock: "", note: "" });
+        setAdding(false);
+        setSuccess("Product added successfully!");
+        // Refresh product list
+        fetch('http://localhost:4000/products')
+          .then(res => res.json())
+          .then(data => setProducts(data));
+      } else {
+        setError(data.error || "Failed to add product.");
+      }
+    } catch (err) {
+      setError("Network error: " + err.message);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -43,50 +86,61 @@ const Inventory = () => {
             Monitor and manage your product stock levels
           </p>
         </div>
-        <Button className="bg-primary hover:bg-primary-hover">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Product
-        </Button>
+        {!adding ? (
+          <Button onClick={() => setAdding(true)} className="bg-primary hover:bg-primary-hover">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Product
+          </Button>
+        ) : null}
       </div>
+
+      {/* Add Product Form */}
+      {adding && (
+        <form onSubmit={handleAddProduct} className="space-y-2 mb-4 bg-muted p-4 rounded">
+          <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
+            <input
+              type="text"
+              placeholder="Product Name"
+              value={newProduct.name}
+              onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+              required
+              className="border p-2 rounded w-full md:w-1/4"
+            />
+            <input
+              type="number"
+              placeholder="Quantity"
+              value={newProduct.qty}
+              onChange={e => setNewProduct({ ...newProduct, qty: e.target.value })}
+              required
+              className="border p-2 rounded w-full md:w-1/4"
+            />
+            <input
+              type="number"
+              placeholder="Minimum Stock"
+              value={newProduct.minStock}
+              onChange={e => setNewProduct({ ...newProduct, minStock: e.target.value })}
+              required
+              className="border p-2 rounded w-full md:w-1/4"
+            />
+            <input
+              type="text"
+              placeholder="Note"
+              value={newProduct.note}
+              onChange={e => setNewProduct({ ...newProduct, note: e.target.value })}
+              className="border p-2 rounded w-full md:w-1/4"
+            />
+          </div>
+          <div className="flex space-x-2 mt-2">
+            <button type="submit" className="bg-primary text-white px-4 py-2 rounded">Add</button>
+            <button type="button" onClick={() => { setAdding(false); setError(""); }} className="bg-muted-foreground text-white px-4 py-2 rounded">Cancel</button>
+          </div>
+          {error && <div className="text-destructive mt-2">{error}</div>}
+          {success && <div className="text-green-600 mt-2">{success}</div>}
+        </form>
+      )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Products
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{totalProducts}</div>
-            <p className="text-sm text-muted-foreground mt-1">Active products</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Quantity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{totalQty.toLocaleString()}</div>
-            <p className="text-sm text-muted-foreground mt-1">Units in stock</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Stock Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{alertProducts}</div>
-            <p className="text-sm text-muted-foreground mt-1">Products below minimum</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* You can add your own summary logic here */}
 
       {/* Search and Filter */}
       <Card className="shadow-sm">
@@ -118,44 +172,16 @@ const Inventory = () => {
                   <TableHead>Product Name</TableHead>
                   <TableHead>Current Stock</TableHead>
                   <TableHead>Minimum Stock</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Note</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>
-                      <span className={product.alert ? "text-destructive font-semibold" : ""}>
-                        {product.qty}
-                      </span>
-                    </TableCell>
+                    <TableCell>{product.qty}</TableCell>
                     <TableCell>{product.minStock}</TableCell>
-                    <TableCell>
-                      {product.alert ? (
-                        <Badge variant="destructive" className="flex items-center w-fit">
-                          <AlertTriangle className="w-3 h-3 mr-1" />
-                          Low Stock
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">Normal</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {product.note}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    <TableCell>{product.note}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
