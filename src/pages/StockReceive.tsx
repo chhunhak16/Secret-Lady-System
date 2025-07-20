@@ -179,11 +179,9 @@ const StockReceive = () => {
                     <SelectValue placeholder="Select supplier" />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* REMOVED: suppliers.map((supplier) => ( */}
                     <SelectItem key="placeholder" value="" disabled>
                       Select a supplier
                     </SelectItem>
-                    {/* REMOVED: suppliers.map((supplier) => ( */}
                   </SelectContent>
                 </Select>
               </div>
@@ -198,11 +196,9 @@ const StockReceive = () => {
                     <SelectValue placeholder="Select product" />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* REMOVED: products.map((product) => ( */}
                     <SelectItem key="placeholder" value="" disabled>
                       Select a product
                     </SelectItem>
-                    {/* REMOVED: products.map((product) => ( */}
                   </SelectContent>
                 </Select>
               </div>

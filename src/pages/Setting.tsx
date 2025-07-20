@@ -57,45 +57,9 @@ const Setting = () => {
     defaultLowStockThreshold: "10",
   });
 
-  // Mock users data
-  const users = [
-    {
-      id: "USR001",
-      username: "admin",
-      fullName: "Admin User",
-      email: "admin@secretlady.com",
-      role: "Admin",
-      status: "active",
-      lastLogin: "2024-01-20T10:30:00",
-      createdDate: "2024-01-01"
-    },
-    {
-      id: "USR002", 
-      username: "staff1",
-      fullName: "John Doe",
-      email: "john@secretlady.com",
-      role: "Staff",
-      status: "active",
-      lastLogin: "2024-01-20T09:15:00",
-      createdDate: "2024-01-05"
-    },
-    {
-      id: "USR003",
-      username: "staff2",
-      fullName: "Jane Smith",
-      email: "jane@secretlady.com",
-      role: "Staff",
-      status: "inactive",
-      lastLogin: "2024-01-18T14:20:00",
-      createdDate: "2024-01-10"
-    }
-  ];
+  // Remove mock users data
 
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Remove filteredUsers and any usage of users
 
   const handleUserSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,32 +265,33 @@ const Setting = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.id}</TableCell>
-                        <TableCell>{user.username}</TableCell>
-                        <TableCell>{user.fullName}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{getRoleBadge(user.role)}</TableCell>
-                        <TableCell>{getStatusBadge(user.status)}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(user.lastLogin).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {/* The following block was removed as per the edit hint */}
+                    {/* {filteredUsers.map((user) => ( */}
+                    {/*   <TableRow key={user.id}> */}
+                    {/*     <TableCell className="font-medium">{user.id}</TableCell> */}
+                    {/*     <TableCell>{user.username}</TableCell> */}
+                    {/*     <TableCell>{user.fullName}</TableCell> */}
+                    {/*     <TableCell>{user.email}</TableCell> */}
+                    {/*     <TableCell>{getRoleBadge(user.role)}</TableCell> */}
+                    {/*     <TableCell>{getStatusBadge(user.status)}</TableCell> */}
+                    {/*     <TableCell className="text-muted-foreground"> */}
+                    {/*       {new Date(user.lastLogin).toLocaleDateString()} */}
+                    {/*     </TableCell> */}
+                    {/*     <TableCell className="text-right"> */}
+                    {/*       <div className="flex justify-end space-x-2"> */}
+                    {/*         <Button variant="outline" size="sm"> */}
+                    {/*           <Eye className="w-4 h-4" /> */}
+                    {/*         </Button> */}
+                    {/*         <Button variant="outline" size="sm"> */}
+                    {/*           <Edit className="w-4 h-4" /> */}
+                    {/*         </Button> */}
+                    {/*         <Button variant="outline" size="sm"> */}
+                    {/*           <Trash2 className="w-4 h-4" /> */}
+                    {/*         </Button> */}
+                    {/*       </div> */}
+                    {/*     </TableCell> */}
+                    {/*   </TableRow> */}
+                    {/* ))} */}
                   </TableBody>
                 </Table>
               </div>

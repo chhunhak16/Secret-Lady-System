@@ -30,64 +30,7 @@ const Report = () => {
     endDate: "",
   });
 
-  const reportTypes = [
-    {
-      id: "inventory",
-      name: "Inventory Report",
-      description: "Current stock levels and alerts",
-      icon: Package,
-      color: "bg-blue-500"
-    },
-    {
-      id: "transfer",
-      name: "Transfer Report", 
-      description: "Stock transfer summary",
-      icon: TrendingUp,
-      color: "bg-green-500"
-    },
-    {
-      id: "receiving",
-      name: "Receiving Report",
-      description: "Stock receiving summary", 
-      icon: BarChart3,
-      color: "bg-purple-500"
-    },
-    {
-      id: "alerts",
-      name: "Stock Alert Report",
-      description: "Low stock and alert summary",
-      icon: AlertTriangle,
-      color: "bg-orange-500"
-    },
-    {
-      id: "supplier",
-      name: "Supplier Performance",
-      description: "Supplier delivery metrics",
-      icon: Users,
-      color: "bg-indigo-500"
-    }
-  ];
-
-  const recentReports = [
-    { 
-      name: "Monthly Inventory Report", 
-      generatedDate: "2024-01-20", 
-      type: "inventory",
-      status: "completed" 
-    },
-    { 
-      name: "Weekly Transfer Summary", 
-      generatedDate: "2024-01-18", 
-      type: "transfer",
-      status: "completed" 
-    },
-    { 
-      name: "Stock Alert Analysis", 
-      generatedDate: "2024-01-15", 
-      type: "alerts",
-      status: "completed" 
-    }
-  ];
+  // Remove reportTypes and recentReports arrays and any code that uses them
 
   const handleGenerateReport = () => {
     if (!selectedReport) return;
@@ -145,7 +88,7 @@ const Report = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{reportTypes.length}</div>
+            <div className="text-2xl font-bold text-foreground">{/* reportTypes.length */}</div>
             <p className="text-sm text-muted-foreground">Available formats</p>
           </CardContent>
         </Card>
@@ -181,11 +124,11 @@ const Report = () => {
                     <SelectValue placeholder="Select report type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {reportTypes.map((report) => (
-                      <SelectItem key={report.id} value={report.id}>
-                        {report.name}
-                      </SelectItem>
-                    ))}
+                    {/* {reportTypes.map((report) => ( */}
+                    {/*   <SelectItem key={report.id} value={report.id}> */}
+                    {/*     {report.name} */}
+                    {/*   </SelectItem> */}
+                    {/* ))} */}
                   </SelectContent>
                 </Select>
               </div>
@@ -233,27 +176,27 @@ const Report = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {reportTypes.map((report) => {
-                const Icon = report.icon;
-                return (
-                  <div 
-                    key={report.id} 
-                    className="flex items-center p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => setSelectedReport(report.id)}
-                  >
-                    <div className={`p-2 rounded-lg ${report.color} mr-3`}>
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-foreground">{report.name}</h4>
-                      <p className="text-sm text-muted-foreground">{report.description}</p>
-                    </div>
-                    {selectedReport === report.id && (
-                      <Badge variant="default">Selected</Badge>
-                    )}
-                  </div>
-                );
-              })}
+              {/* {reportTypes.map((report) => { */}
+              {/*   const Icon = report.icon; */}
+              {/*   return ( */}
+              {/*     <div  */}
+              {/*       key={report.id}  */}
+              {/*       className="flex items-center p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" */}
+              {/*       onClick={() => setSelectedReport(report.id)} */}
+              {/*     > */}
+              {/*       <div className={`p-2 rounded-lg ${report.color} mr-3`}> */}
+              {/*         <Icon className="w-5 h-5 text-white" /> */}
+              {/*       </div> */}
+              {/*       <div className="flex-1"> */}
+              {/*         <h4 className="font-medium text-foreground">{report.name}</h4> */}
+              {/*         <p className="text-sm text-muted-foreground">{report.description}</p> */}
+              {/*       </div> */}
+              {/*       {selectedReport === report.id && ( */}
+              {/*         <Badge variant="default">Selected</Badge> */}
+              {/*       )} */}
+              {/*     </div> */}
+              {/*   ); */}
+              {/* })} */}
             </div>
           </CardContent>
         </Card>
@@ -266,29 +209,29 @@ const Report = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentReports.map((report, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <FileText className="w-8 h-8 text-primary" />
-                  <div>
-                    <h4 className="font-medium text-foreground">{report.name}</h4>
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      <span>Generated on {new Date(report.generatedDate).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge className="bg-success text-success-foreground">
-                    {report.status}
-                  </Badge>
-                  <Button variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-                </div>
-              </div>
-            ))}
+            {/* {recentReports.map((report, index) => ( */}
+            {/*   <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"> */}
+            {/*     <div className="flex items-center space-x-3"> */}
+            {/*       <FileText className="w-8 h-8 text-primary" /> */}
+            {/*       <div> */}
+            {/*         <h4 className="font-medium text-foreground">{report.name}</h4> */}
+            {/*         <div className="flex items-center space-x-2 text-sm text-muted-foreground"> */}
+            {/*           <Calendar className="w-4 h-4" /> */}
+            {/*           <span>Generated on {new Date(report.generatedDate).toLocaleDateString()}</span> */}
+            {/*         </div> */}
+            {/*       </div> */}
+            {/*     </div> */}
+            {/*     <div className="flex items-center space-x-2"> */}
+            {/*       <Badge className="bg-success text-success-foreground"> */}
+            {/*         {report.status} */}
+            {/*       </Badge> */}
+            {/*       <Button variant="outline" size="sm"> */}
+            {/*         <Download className="w-4 h-4 mr-2" /> */}
+            {/*         Download */}
+            {/*       </Button> */}
+            {/*     </div> */}
+            {/*   </div> */}
+            {/* ))} */}
           </div>
         </CardContent>
       </Card>
