@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Search, Filter, AlertTriangle, Edit, Trash2 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,7 +21,7 @@ const Inventory = () => {
   const [newProduct, setNewProduct] = useState({
     name: "",
     qty: "",
-    minStock: "",
+    minstock: "",
     note: "",
   });
   const [adding, setAdding] = useState(false);
@@ -30,12 +31,17 @@ const Inventory = () => {
   // Products state
   const [products, setProducts] = useState([]);
 
-  // Fetch products from backend API
+  // Fetch inventory from Supabase
   useEffect(() => {
-    fetch('http://localhost:4000/products')
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => setError("Failed to fetch products: " + err.message));
+    const fetchInventory = async () => {
+      const { data, error } = await supabase.from('inventory').select('*');
+      if (error) {
+        setError("Failed to fetch inventory: " + error.message);
+      } else {
+        setProducts(data || []);
+      }
+    };
+    fetchInventory();
   }, []);
 
   // Filtered products
@@ -43,33 +49,29 @@ const Inventory = () => {
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Add product handler using backend API
+  // Add inventory handler using Supabase
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    const { name, qty, minStock, note } = newProduct;
-    if (!name || !qty || !minStock) {
+    const { name, qty, minstock, note } = newProduct;
+    if (!name || !qty || !minstock) {
       setError("Please fill in all required fields.");
       return;
     }
     try {
-      const response = await fetch('http://localhost:4000/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, qty: Number(qty), minStock: Number(minStock), note })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setNewProduct({ name: "", qty: "", minStock: "", note: "" });
+      const { error } = await supabase.from('inventory').insert([
+        { name, qty: Number(qty), minstock: Number(minstock), note }
+      ]);
+      if (!error) {
+        setNewProduct({ name: "", qty: "", minstock: "", note: "" });
         setAdding(false);
-        setSuccess("Product added successfully!");
-        // Refresh product list
-        fetch('http://localhost:4000/products')
-          .then(res => res.json())
-          .then(data => setProducts(data));
+        setSuccess("Inventory item added successfully!");
+        // Refresh inventory list
+        const { data, error: fetchError } = await supabase.from('inventory').select('*');
+        if (!fetchError) setProducts(data || []);
       } else {
-        setError(data.error || "Failed to add product.");
+        setError(error.message || "Failed to add inventory item.");
       }
     } catch (err) {
       setError("Network error: " + err.message);
@@ -117,8 +119,8 @@ const Inventory = () => {
             <input
               type="number"
               placeholder="Minimum Stock"
-              value={newProduct.minStock}
-              onChange={e => setNewProduct({ ...newProduct, minStock: e.target.value })}
+              value={newProduct.minstock}
+              onChange={e => setNewProduct({ ...newProduct, minstock: e.target.value })}
               required
               className="border p-2 rounded w-full md:w-1/4"
             />
@@ -180,7 +182,7 @@ const Inventory = () => {
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.qty}</TableCell>
-                    <TableCell>{product.minStock}</TableCell>
+                    <TableCell>{product.minstock}</TableCell>
                     <TableCell>{product.note}</TableCell>
                   </TableRow>
                 ))}
