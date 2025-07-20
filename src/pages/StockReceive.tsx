@@ -1,21 +1,359 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Search, Eye, Edit, Trash2, Calendar, Package } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const StockReceive = () => {
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    supplierId: "",
+    productId: "",
+    qty: "",
+    receivingDate: "",
+    note: "",
+  });
+
+  // Mock data
+  const suppliers = [
+    { id: "SUP001", name: "ABC Supply Co." },
+    { id: "SUP002", name: "Global Trading Ltd." },
+    { id: "SUP003", name: "Premier Wholesale" },
+  ];
+
+  const products = [
+    { id: "PRD001", name: "Product A" },
+    { id: "PRD002", name: "Product B" },
+    { id: "PRD003", name: "Product C" },
+  ];
+
+  const receives = [
+    {
+      id: "SR001",
+      supplierName: "ABC Supply Co.",
+      productName: "Product A",
+      qty: 100,
+      receivingDate: "2024-01-15",
+      status: "received",
+      note: "Good condition",
+      createdDate: "2024-01-15"
+    },
+    {
+      id: "SR002", 
+      supplierName: "Global Trading Ltd.",
+      productName: "Product B",
+      qty: 75,
+      receivingDate: "2024-01-20",
+      status: "pending",
+      note: "Expected delivery",
+      createdDate: "2024-01-18"
+    },
+    {
+      id: "SR003",
+      supplierName: "Premier Wholesale", 
+      productName: "Product C",
+      qty: 50,
+      receivingDate: "2024-01-22",
+      status: "partial",
+      note: "Partial delivery received",
+      createdDate: "2024-01-20"
+    },
+  ];
+
+  const filteredReceives = receives.filter(receive =>
+    receive.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    receive.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    receive.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.supplierId || !formData.productId || !formData.qty || !formData.receivingDate) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Stock receive record created successfully",
+    });
+    
+    setFormData({ supplierId: "", productId: "", qty: "", receivingDate: "", note: "" });
+    setShowForm(false);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "received":
+        return <Badge className="bg-success text-success-foreground">Received</Badge>;
+      case "pending":
+        return <Badge variant="secondary">Pending</Badge>;
+      case "partial":
+        return <Badge className="bg-warning text-warning-foreground">Partial</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Stock Receive</h1>
-        <p className="text-muted-foreground mt-1">
-          Record incoming stock from suppliers
-        </p>
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Stock Receive</h1>
+          <p className="text-muted-foreground mt-1">
+            Record incoming stock from suppliers
+          </p>
+        </div>
+        <Button 
+          className="bg-primary hover:bg-primary-hover"
+          onClick={() => setShowForm(!showForm)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Record Receipt
+        </Button>
       </div>
-      
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Receipts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Package className="w-8 h-8 text-primary mr-3" />
+              <div className="text-2xl font-bold text-foreground">{receives.length}</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Received
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-success">
+              {receives.filter(r => r.status === "received").length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Pending
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-warning">
+              {receives.filter(r => r.status === "pending").length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Quantity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {receives.reduce((sum, r) => sum + r.qty, 0)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Create Receive Form */}
+      {showForm && (
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Record Stock Receipt</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="supplier">Supplier *</Label>
+                <Select 
+                  value={formData.supplierId} 
+                  onValueChange={(value) => setFormData(prev => ({...prev, supplierId: value}))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {suppliers.map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.id}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="product">Product *</Label>
+                <Select 
+                  value={formData.productId} 
+                  onValueChange={(value) => setFormData(prev => ({...prev, productId: value}))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="qty">Quantity Received *</Label>
+                <Input
+                  type="number"
+                  placeholder="Enter quantity"
+                  value={formData.qty}
+                  onChange={(e) => setFormData(prev => ({...prev, qty: e.target.value}))}
+                  min="1"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="receivingDate">Receiving Date *</Label>
+                <Input
+                  type="date"
+                  value={formData.receivingDate}
+                  onChange={(e) => setFormData(prev => ({...prev, receivingDate: e.target.value}))}
+                />
+              </div>
+
+              <div className="md:col-span-2 space-y-2">
+                <Label htmlFor="note">Note</Label>
+                <Textarea
+                  placeholder="Add any notes about this receipt..."
+                  value={formData.note}
+                  onChange={(e) => setFormData(prev => ({...prev, note: e.target.value}))}
+                  rows={3}
+                />
+              </div>
+
+              <div className="md:col-span-2 flex space-x-2">
+                <Button type="submit" className="bg-primary hover:bg-primary-hover">
+                  Record Receipt
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Receive List */}
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Stock Receiving Management</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Receiving History</CardTitle>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search receipts..."
+                className="pl-10 w-64"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Stock receiving functionality coming soon...</p>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Receipt ID</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Receiving Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Note</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredReceives.map((receive) => (
+                  <TableRow key={receive.id}>
+                    <TableCell className="font-medium">{receive.id}</TableCell>
+                    <TableCell>{receive.supplierName}</TableCell>
+                    <TableCell>{receive.productName}</TableCell>
+                    <TableCell>{receive.qty}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+                        {new Date(receive.receivingDate).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(receive.status)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground max-w-xs truncate">
+                      {receive.note}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
