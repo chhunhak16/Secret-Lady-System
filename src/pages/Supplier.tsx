@@ -53,9 +53,9 @@ const Supplier = () => {
     (supplier.id || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.supplierName) {
       toast({
         title: "Error",
@@ -65,11 +65,36 @@ const Supplier = () => {
       return;
     }
 
+    // Insert into Supabase
+    const { error } = await supabase.from('suppliers').insert([
+      {
+        name: formData.supplierName,
+        contact_person: formData.contactPerson,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        status: formData.status,
+      }
+    ]);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Success",
       description: "Supplier created successfully",
     });
-    
+
+    // Refresh supplier list
+    const { data } = await supabase.from('suppliers').select('*');
+    setSuppliers(data || []);
+
     setFormData({
       supplierName: "",
       contactPerson: "",
