@@ -38,6 +38,7 @@ const StockReceive = () => {
   });
 
   const [receives, setReceives] = useState([]);
+  const [editId, setEditId] = useState<string | null>(null);
   useEffect(() => {
     const fetchReceives = async () => {
       const { data, error } = await supabase.from('stock_receive').select('*');
@@ -52,7 +53,7 @@ const StockReceive = () => {
     (receive.id || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.supplierId || !formData.productId || !formData.qty || !formData.receivingDate) {
@@ -64,13 +65,60 @@ const StockReceive = () => {
       return;
     }
 
-    toast({
-      title: "Success",
-      description: "Stock receive record created successfully",
-    });
-    
-    setFormData({ supplierId: "", productId: "", qty: "", receivingDate: "", note: "" });
+    let error;
+    if (editId) {
+      ({ error } = await supabase.from('stock_receive').update({
+        supplier_id: formData.supplierId,
+        product_id: formData.productId,
+        qty: Number(formData.qty),
+        receivingDate: formData.receivingDate,
+        note: formData.note,
+      }).eq('id', editId));
+    } else {
+      ({ error } = await supabase.from('stock_receive').insert([
+        {
+          supplier_id: formData.supplierId,
+          product_id: formData.productId,
+          qty: Number(formData.qty),
+          receivingDate: formData.receivingDate,
+          note: formData.note,
+        }
+      ]));
+    }
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Success', description: editId ? 'Stock receive updated.' : 'Stock receive record created successfully' });
+    const { data } = await supabase.from('stock_receive').select('*');
+    setReceives(data || []);
+    setFormData({ supplierId: '', productId: '', qty: '', receivingDate: '', note: '' });
     setShowForm(false);
+    setEditId(null);
+  };
+
+  // Edit stock receive
+  const handleEdit = (receive: any) => {
+    setEditId(receive.id);
+    setFormData({
+      supplierId: receive.supplier_id || '',
+      productId: receive.product_id || '',
+      qty: receive.qty?.toString() || '',
+      receivingDate: receive.receivingDate || '',
+      note: receive.note || '',
+    });
+    setShowForm(true);
+  };
+
+  // Delete stock receive
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('stock_receive').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    const { data } = await supabase.from('stock_receive').select('*');
+    setReceives(data || []);
   };
 
   const getStatusBadge = (status: string) => {
@@ -235,9 +283,9 @@ const StockReceive = () => {
 
               <div className="md:col-span-2 flex space-x-2">
                 <Button type="submit" className="bg-primary hover:bg-primary-hover">
-                  Record Receipt
+                  {editId ? 'Update Receipt' : 'Record Receipt'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditId(null); }}>
                   Cancel
                 </Button>
               </div>
@@ -301,10 +349,10 @@ const StockReceive = () => {
                       <Button variant="outline" size="sm">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(receive)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleDelete(receive.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

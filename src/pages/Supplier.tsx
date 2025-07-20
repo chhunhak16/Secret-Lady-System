@@ -39,6 +39,8 @@ const Supplier = () => {
   });
 
   const [suppliers, setSuppliers] = useState([]);
+  const [editId, setEditId] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchSuppliers = async () => {
       const { data, error } = await supabase.from('suppliers').select('*');
@@ -53,57 +55,80 @@ const Supplier = () => {
     (supplier.id || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.supplierName) {
-      toast({
-        title: "Error",
-        description: "Supplier name is required",
-        variant: "destructive",
-      });
+  // Delete supplier
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('suppliers').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
       return;
     }
+    toast({ title: 'Deleted', description: 'Supplier deleted.' });
+    const { data } = await supabase.from('suppliers').select('*');
+    setSuppliers(data || []);
+  };
 
-    // Insert into Supabase
-    const { error } = await supabase.from('suppliers').insert([
-      {
+  // Edit supplier
+  const handleEdit = (supplier: any) => {
+    setEditId(supplier.id);
+    setFormData({
+      supplierName: supplier.name || '',
+      contactPerson: supplier.contact_info || '',
+      phone: supplier.phone || '',
+      email: supplier.email || '',
+      address: supplier.address || '',
+      status: supplier.status || 'active',
+    });
+    setShowForm(true);
+  };
+
+  // Add or update supplier
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.supplierName) {
+      toast({ title: 'Error', description: 'Supplier name is required', variant: 'destructive' });
+      return;
+    }
+    let error;
+    if (editId) {
+      // Update
+      ({ error } = await supabase.from('suppliers').update({
         name: formData.supplierName,
-        contact_person: formData.contactPerson,
+        contact_info: formData.contactPerson,
         phone: formData.phone,
         email: formData.email,
         address: formData.address,
         status: formData.status,
-      }
-    ]);
-
+      }).eq('id', editId));
+    } else {
+      // Insert
+      ({ error } = await supabase.from('suppliers').insert([
+        {
+          name: formData.supplierName,
+          contact_info: formData.contactPerson,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          status: formData.status,
+        }
+      ]));
+    }
     if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
       return;
     }
-
-    toast({
-      title: "Success",
-      description: "Supplier created successfully",
-    });
-
-    // Refresh supplier list
+    toast({ title: 'Success', description: editId ? 'Supplier updated.' : 'Supplier created successfully' });
     const { data } = await supabase.from('suppliers').select('*');
     setSuppliers(data || []);
-
     setFormData({
-      supplierName: "",
-      contactPerson: "",
-      phone: "",
-      email: "",
-      address: "",
-      status: "active",
+      supplierName: '',
+      contactPerson: '',
+      phone: '',
+      email: '',
+      address: '',
+      status: 'active',
     });
     setShowForm(false);
+    setEditId(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -265,9 +290,9 @@ const Supplier = () => {
 
               <div className="md:col-span-2 flex space-x-2">
                 <Button type="submit" className="bg-primary hover:bg-primary-hover">
-                  Add Supplier
+                  {editId ? 'Update Supplier' : 'Add Supplier'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditId(null); }}>
                   Cancel
                 </Button>
               </div>
@@ -311,7 +336,7 @@ const Supplier = () => {
                   <TableRow key={supplier.id}>
                     <TableCell className="font-medium">{supplier.id}</TableCell>
                     <TableCell className="font-semibold">{supplier.supplierName || supplier.name}</TableCell>
-                    <TableCell>{supplier.contactPerson}</TableCell>
+                    <TableCell>{supplier.contact_info}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center text-sm">
@@ -340,10 +365,10 @@ const Supplier = () => {
                         <Button variant="outline" size="sm">
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(supplier)}>
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(supplier.id)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>

@@ -37,12 +37,6 @@ const navigationItems = [
     route: "/stock-receive"
   },
   {
-    id: "receiver-stock",
-    name: "Receiver Stock",
-    icon: Truck,
-    route: "/receiver-stock"
-  },
-  {
     id: "supplier",
     name: "Supplier",
     icon: Users,

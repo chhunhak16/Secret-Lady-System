@@ -9,7 +9,6 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import StockTransfer from "./pages/StockTransfer";
 import StockReceive from "./pages/StockReceive";
-import ReceiverStock from "./pages/ReceiverStock";
 import Supplier from "./pages/Supplier";
 import Report from "./pages/Report";
 import Setting from "./pages/Setting";
@@ -30,7 +29,6 @@ const App = () => (
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/stock-transfer" element={<StockTransfer />} />
             <Route path="/stock-receive" element={<StockReceive />} />
-            <Route path="/receiver-stock" element={<ReceiverStock />} />
             <Route path="/supplier" element={<Supplier />} />
             <Route path="/report" element={<Report />} />
             <Route path="/setting" element={<Setting />} />
